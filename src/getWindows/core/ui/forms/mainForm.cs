@@ -18,6 +18,7 @@
  * 
  */
 
+using getWindows.core.windows;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -27,24 +28,114 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinProc.core.ui;
 
-namespace getWindows
+namespace getWindows.core.ui.forms
 {
     public partial class mainForm : Form
     {
+        private WindowsList _list;
+
         public mainForm()
         {
             InitializeComponent();
+            _list = WindowManager.GetWindows;
         }
 
         private void aboutMenuItem_Click(object sender, EventArgs e)
         {
-
+            aboutForm about = new aboutForm();
+            about.ShowDialog();
+            about.Dispose();
+            about = null;
         }
 
         private void exitMenuItem_Click(object sender, EventArgs e)
         {
             Environment.Exit(0);
+        }
+
+        private void mainForm_Load(object sender, EventArgs e)
+        {
+            foreach (Window w in _list)
+            {
+                ListViewItem item = new ListViewItem(new String[] { w.Handle.ToInt32().ToString(), w.Title });
+                item.Tag = w;
+                winlist.Items.Add(item);
+            }
+        }
+
+        private void minWindowMenuItem_Click(object sender, EventArgs e)
+        {
+            if (winlist.SelectedItems.Count == 1)
+            {
+                WindowManager.MinimizeWindow((Window)winlist.SelectedItems[0].Tag);
+            }
+        }
+
+        private void maxWindowMenuItem_Click(object sender, EventArgs e)
+        {
+            if (winlist.SelectedItems.Count == 1)
+            {
+                WindowManager.MaximizeWindow((Window)winlist.SelectedItems[0].Tag);
+            }
+        }
+
+        private void hideWindowMenuItem_Click(object sender, EventArgs e)
+        {
+            if (winlist.SelectedItems.Count == 1)
+            {
+                WindowManager.HideWindow((Window)winlist.SelectedItems[0].Tag);
+            }
+        }
+
+        private void showWindowNormalMenuItem_Click(object sender, EventArgs e)
+        {
+            if (winlist.SelectedItems.Count == 1)
+            {
+                WindowManager.NormalizeWindow((Window)winlist.SelectedItems[0].Tag);
+            }
+        }
+
+        private void popupMenu_Opening(object sender, CancelEventArgs e)
+        {
+            try
+            {
+                if (winlist.SelectedItems.Count == 1)
+                {
+                    minWindowMenuItem.Visible = true;
+                    maxWindowMenuItem.Visible = true;
+                    hideWindowMenuItem.Visible = true;
+                    showWindowNormalMenuItem.Visible = true;
+                }
+                else
+                {
+                    minWindowMenuItem.Visible = false;
+                    maxWindowMenuItem.Visible = false;
+                    hideWindowMenuItem.Visible = false;
+                    showWindowNormalMenuItem.Visible = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                InformUser.showError(ex.Message);
+            }
+        }
+
+        private void winlist_MouseClick(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (e.Button == MouseButtons.Right)
+                {
+                    Point pt = popupMenu.PointToScreen(e.Location);
+                    popupMenu.Show(pt);
+                }
+            }
+            catch (Exception ex)
+            {
+                InformUser.showError(ex.Message);
+            }
         }
     }
 }

@@ -28,12 +28,13 @@ namespace getWindows.core.windows
 {
     class Window
     {
-        public Window(String handle, String title)
+        public Window(IntPtr handle, String title)
         {
-
+            Handle = handle;
+            Title = title;
         }
 
-        public String Handle { get; set; }
+        public IntPtr Handle { get; set; }
         public String Title { get; set; }
     }
 }

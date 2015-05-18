@@ -21,6 +21,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Management;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using WinProc.core.ui;
@@ -29,14 +31,44 @@ namespace getWindows.core.windows
 {
     class WindowManager
     {
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+        private const int SWHIDE = 0;
+        private const int SWSHOWNORMAL = 1;
+        private const int SWSHOWMINIMIZED = 2;
+        private const int SWSHOWMAXIMIZED = 3;
+
+        [DllImport("user32.dll")]
+        static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        static extern int GetWindowTextLength(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
         public static WindowsList GetWindows
         {
             get
             {
                 WindowsList _list = new WindowsList();
-
                 try
                 {
+                    EnumWindows(delegate(IntPtr hWnd, IntPtr param)
+                    {
+                        int size = GetWindowTextLength(hWnd);
+                        if (size++ > 0)
+                        {
+                            StringBuilder str = new StringBuilder(size);
+                            GetWindowText(hWnd, str, str.Capacity);
+                            if (String.IsNullOrEmpty(str.ToString()) == false)
+                                _list.Add(new Window(hWnd, str.ToString()));
+                        }
+                        return true;
+                    }, IntPtr.Zero);
 
                     return _list;
                 }
@@ -48,39 +80,31 @@ namespace getWindows.core.windows
             }
         }
 
-        public static Boolean MaximizeWindow(int handle)
+        public static Boolean MaximizeWindow(Window w)
         {
-            try
-            {
-                
-                return true;
-            }
-            catch (Exception ex)
-            {
-                InformUser.showError(ex.Message);
-                return false;
-            }
+            return _handleWindow(w, SWSHOWMAXIMIZED);
         }
 
-        public static Boolean MinimizeWindow(int handle)
+        public static Boolean MinimizeWindow(Window w)
         {
-            try
-            {
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                InformUser.showError(ex.Message);
-                return false;
-            }
+            return _handleWindow(w, SWSHOWMINIMIZED);
         }
 
-        public static Boolean HideWindow(int handle)
+        public static Boolean HideWindow(Window w)
+        {
+            return _handleWindow(w, SWHIDE);
+        }
+
+        public static Boolean NormalizeWindow(Window w)
+        {
+            return _handleWindow(w, SWSHOWNORMAL);
+        }
+
+        private static Boolean _handleWindow(Window w, int Cmd)
         {
             try
             {
-
+                ShowWindowAsync(w.Handle, Cmd);
                 return true;
             }
             catch (Exception ex)
