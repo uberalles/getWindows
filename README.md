@@ -1,0 +1,2 @@
+# getWindows
+Manipulate opened Windows
