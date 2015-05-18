@@ -62,6 +62,7 @@ namespace getWindows.core.ui.forms
                 ListViewItem item = new ListViewItem(new String[] { w.Handle.ToInt32().ToString(), w.Title });
                 item.Tag = w;
                 winlist.Items.Add(item);
+                counter.Text = winlist.Items.Count + " windows.";
             }
         }
 
