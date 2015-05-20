@@ -104,8 +104,7 @@ namespace getWindows.core.windows
         {
             try
             {
-                ShowWindowAsync(w.Handle, Cmd);
-                return true;
+                return ShowWindowAsync(w.Handle, Cmd);
             }
             catch (Exception ex)
             {
