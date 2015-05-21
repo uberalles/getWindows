@@ -31,7 +31,7 @@ namespace getWindows.core.windows
 {
     class WindowManager
     {
-        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+        private delegate bool EnumWindowsProc(IntPtr hWnd, int lParam);
         private const int SWHIDE = 0;
         private const int SWSHOWNORMAL = 1;
         private const int SWSHOWMINIMIZED = 2;
@@ -40,15 +40,14 @@ namespace getWindows.core.windows
         [DllImport("user32.dll")]
         static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport("user32.dll")]
         static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("user32.dll")]
         static extern int GetWindowTextLength(IntPtr hWnd);
 
         [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, int lParam);
 
         public static WindowsList GetWindows
         {
@@ -57,7 +56,7 @@ namespace getWindows.core.windows
                 WindowsList _list = new WindowsList();
                 try
                 {
-                    EnumWindows(delegate(IntPtr hWnd, IntPtr param)
+                    EnumWindows(delegate(IntPtr hWnd, int param)
                     {
                         int size = GetWindowTextLength(hWnd);
                         if (size++ > 0)
@@ -68,7 +67,7 @@ namespace getWindows.core.windows
                                 _list.Add(new Window(hWnd, str.ToString()));
                         }
                         return true;
-                    }, IntPtr.Zero);
+                    }, 0);
 
                     return _list;
                 }
